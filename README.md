@@ -1,2 +1,2 @@
-# Backend-Nodejs
-API RESTful
+# API REST
+
