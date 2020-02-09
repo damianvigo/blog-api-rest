@@ -8,7 +8,7 @@ var Article = require('../models/article');
 
 var controller = {
 
-  datosCurso: (req, res) => {
+   /* propiedad datosCurso */ datosCurso: (req, res) => {
     var hola = req.body.hola;
 
     return res.status(200).send({
@@ -48,7 +48,13 @@ var controller = {
     // Asignar valores 
       article.title = params.title;
       article.content = params.content;
-      article.image = null;
+      
+
+      if(params.image) {
+         article.image = params.image;
+      } else {
+        article.image = null;
+      }
 
     // Guardar el articulo 
       article.save((err, articleStored) => {
@@ -130,9 +136,9 @@ var controller = {
      }
 
      // Devolverlo en json
-      return res.status(404).send({
-      article,
-      status: 'success'
+      return res.status(200).send({
+      status: 'success',
+      article
     });
 
    }); 
@@ -226,9 +232,12 @@ var controller = {
       });
     }
 
-    // Conseguir el nombre y la extension del archivo
+    // Conseguir el nombre y la extensión del archivo
     var file_path = req.files.file0.path;
     var file_split = file_path.split('\\');
+
+    // En linux o Mac
+    // var file_split = file_path.split('/');
 
     // Nombre del archivo
     var file_name = file_split[2];
@@ -236,10 +245,10 @@ var controller = {
     // Extension del fichero 
     var extension_split = file_name.split('\.');
     var file_ext = extension_split[1];
+    
     // Comprobar la extension, solo imagenes, si es valida borrar el fichero
-
-    if(file_ext != 'png' && file_ext != 'jpg' && file_ext != 'jpeg' && file_ext != 'gif') {
-      // borrar el archivo subido
+    if(file_ext != 'png' && file_ext != 'jpg' && file_ext != 'jpeg' && file_ext != 'gif') /* != si es diferente  */{
+      // borrar el archivo subido // libereria fs (file system)
       fs.unlink(file_path, (err) => {
         return res.status(200).send({
           status: 'error',
@@ -249,8 +258,10 @@ var controller = {
 
     } else {
       // Si todo es valido, sacando id de la url
-      var articleId = req.params.id
-    // Buscar el articlo, asignarle el nombre de la imagen y actualizarlo
+      var articleId = req.params.id;
+
+      if(articleId) {
+        // Buscar el articlo, asignarle el nombre de la imagen y actualizarlo
       Article.findOneAndUpdate({_id: articleId}, {image: file_name}, {new: true}, (err, articleUpdated) => {
         
         if(err || !articleUpdated) {
@@ -265,6 +276,15 @@ var controller = {
           article: articleUpdated
         });
       });
+      } else {
+        
+        return res.status(200).send({
+          status: 'success',
+          image: file_name
+        });
+      }
+
+    
   } 
 
   },// end upload file
@@ -293,7 +313,7 @@ var controller = {
 
     // Find or
     Article.find({ "$or": [
-      { "title": { "$regex": searchString, "$options": "i"}},
+      { "title": { "$regex": searchString, "$options": "i"}}, // Si el searchString esta incluido dentro del titulo O esta incluido dentro de contenido, va a sacara el articulo que coincida con eso
       { "content": { "$regex": searchString, "$options": "i"}}
     ]})
     .sort([['date', 'descending']])
@@ -309,7 +329,7 @@ var controller = {
       if(!articles || articles.length <= 0) {
         return res.status(404).send({
           status: 'error',
-          message: 'No hay articulos que coincidad con tu busqueda!'
+          message: 'No hay articulos que coincidan con tu busqueda!'
         });
       }
       
@@ -319,10 +339,6 @@ var controller = {
       });
     })
   }
-
-
-
-
 
 }; // end controller
 

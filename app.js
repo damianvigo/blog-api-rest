@@ -12,7 +12,7 @@
 
 // Middlewares // Se ejecuta antes de cargar una ruta o una url de la aplicacion
   app.use(bodyParser.urlencoded({extended:false}));
-  app.use(bodyParser.json());
+  app.use(bodyParser.json()); // convertir cualquier peticion a json para poder usarlo
 
 // CORS peticiones desde el frontend
 app.use((req, res, next) => {
